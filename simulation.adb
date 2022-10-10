@@ -1,3 +1,5 @@
+-- Author: Pawel Manczak, index 188756
+-- 188756 % 3 = 2
 -- A skeleton of a program for an assignment in programming languages
 -- The students should rename the tasks of producers, consumers, and the buffer
 -- Then, they should change them so that they would fit their assignments
@@ -11,18 +13,25 @@ procedure Simulation is
    Number_Of_Products: constant Integer := 5;
    Number_Of_Assemblies: constant Integer := 3;
    Number_Of_Consumers: constant Integer := 2;
-   subtype Product_Type is Integer range 1 .. Number_Of_Products;
-   subtype Assembly_Type is Integer range 1 .. Number_Of_Assemblies;
-   subtype Consumer_Type is Integer range 1 .. Number_Of_Consumers;
+   
+   --custom types of variables
+   subtype Product_Type is Integer range 1 .. Number_Of_Products; -- ketchup 1,2,3,4,5 et
    Product_Name: constant array (Product_Type) of String(1 .. 8)
      := ("Product1", "Product2", "Product3", "Product4", "Product5");
+   
+   subtype Assembly_Type is Integer range 1 .. Number_Of_Assemblies; --rodzaj zestawu
    Assembly_Name: constant array (Assembly_Type) of String(1 .. 9)
      := ("Assembly1", "Assembly2", "Assembly3");
+
+   subtype Consumer_Type is Integer range 1 .. Number_Of_Consumers;
+   
+   
    package Random_Assembly is new
      Ada.Numerics.Discrete_Random(Assembly_Type);
    type My_Str is new String(1 ..256);
-
-   -- Producer produces determined product
+   -- end of custom types
+   
+   -- Producer produces determined product, w nieskonczonosc produkuje, nigydn ie konczy
    task type Producer is
       -- Give the Producer an identity, i.e. the product type
       entry Start(Product: in Product_Type; Production_Time: in Integer);
@@ -57,16 +66,15 @@ procedure Simulation is
       Production: Integer;
    begin
       accept Start(Product: in Product_Type; Production_Time: in Integer) do
-	 Random_Production.Reset(G);	--  start random number generator
-	 Product_Number := 1;
-	 Product_Type_Number := Product;
-	 Production := Production_Time;
+         Random_Production.Reset(G);	--  start random number generator
+         Product_Number := 1;
+         Product_Type_Number := Product;
+         Production := Production_Time;
       end Start;
       Put_Line("Started producer of " & Product_Name(Product_Type_Number));
       loop
-	 delay Duration(Random_Production.Random(G)); --  symuluj produkcję
-	 Put_Line("Produced product " & Product_Name(Product_Type_Number)
-		    & " number "  & Integer'Image(Product_Number));
+         Put_Line("Produced product " & Product_Name(Product_Type_Number)
+		   & " number "  & Integer'Image(Product_Number));
 	 -- Accept for storage
 	 B.Take(Product_Type_Number, Product_Number);
 	 Product_Number := Product_Number + 1;
@@ -76,31 +84,30 @@ procedure Simulation is
    task body Consumer is
       subtype Consumption_Time_Range is Integer range 4 .. 8;
       package Random_Consumption is new
-	Ada.Numerics.Discrete_Random(Consumption_Time_Range);
+        Ada.Numerics.Discrete_Random(Consumption_Time_Range);
+      
       G: Random_Consumption.Generator;	--  random number generator (time)
       G2: Random_Assembly.Generator;	--  also (assemblies)
       Consumer_Nb: Consumer_Type;
       Assembly_Number: Integer;
       Consumption: Integer;
       Assembly_Type: Integer;
-      Consumer_Name: constant array (1 .. Number_Of_Consumers)
-	of String(1 .. 9)
-	:= ("Consumer1", "Consumer2");
+      Consumer_Name: constant array (1 .. Number_Of_Consumers) of String(1 .. 9) := ("Consumer1", "Consumer2");
    begin
       accept Start(Consumer_Number: in Consumer_Type;
 		     Consumption_Time: in Integer) do
 	 Random_Consumption.Reset(G);	--  ustaw generator
-	 Random_Assembly.Reset(G2);	--  też
+
 	 Consumer_Nb := Consumer_Number;
 	 Consumption := Consumption_Time;
       end Start;
       Put_Line("Started consumer " & Consumer_Name(Consumer_Nb));
       loop
-	 delay Duration(Random_Consumption.Random(G)); --  simulate consumption
-	 Assembly_Type := Random_Assembly.Random(G2);
-	 -- take an assembly for consumption
-	 B.Deliver(Assembly_Type, Assembly_Number);
-	 Put_Line(Consumer_Name(Consumer_Nb) & ": taken assembly " &
+         delay Duration(Random_Consumption.Random(G)); --  simulate consumption
+         Assembly_Type := Random_Assembly.Random(G2);
+         -- take an assembly for consumption
+         B.Deliver(Assembly_Type, Assembly_Number);
+         Put_Line(Consumer_Name(Consumer_Nb) & ": taken assembly " &
 		    Assembly_Name(Assembly_Type) & " number " &
 		    Integer'Image(Assembly_Number));
       end loop;
@@ -109,26 +116,27 @@ procedure Simulation is
    task body Buffer is
       Storage_Capacity: constant Integer := 30;
       type Storage_type is array (Product_Type) of Integer;
-      Storage: Storage_type
-	:= (0, 0, 0, 0, 0);
+      Storage: Storage_type := (0, 0, 0, 0, 0);
+      
       Assembly_Content: array(Assembly_Type, Product_Type) of Integer
 	:= ((2, 1, 2, 1, 2),
 	    (2, 2, 0, 1, 0),
-	    (1, 1, 2, 0, 1));
+     (1, 1, 2, 0, 1));
+      
       Max_Assembly_Content: array(Product_Type) of Integer;
-      Assembly_Number: array(Assembly_Type) of Integer
-	:= (1, 1, 1);
+      Assembly_Number: array(Assembly_Type) of Integer := (1, 1, 1);
+      
       In_Storage: Integer := 0;
 
       procedure Setup_Variables is
       begin
-	 for W in Product_Type loop
-	    Max_Assembly_Content(W) := 0;
-	    for Z in Assembly_Type loop
-	       if Assembly_Content(Z, W) > Max_Assembly_Content(W) then
-		  Max_Assembly_Content(W) := Assembly_Content(Z, W);
-	       end if;
-	    end loop;
+      for W in Product_Type loop
+         Max_Assembly_Content(W) := 0;
+         for Z in Assembly_Type loop
+            if Assembly_Content(Z, W) > Max_Assembly_Content(W) then
+               Max_Assembly_Content(W) := Assembly_Content(Z, W);
+            end if;
+	     end loop;
 	 end loop;
       end Setup_Variables;
 
@@ -234,5 +242,4 @@ begin
       K(J).Start(J,12);
    end loop;
 end Simulation;
-
 
