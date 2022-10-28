@@ -1,6 +1,8 @@
 -- Author: Pawel Manczak, index 188756
 -- 188756 % 3 = 2
 
+-- dodanie exception 28.10.2022 17:00
+
 -- A skeleton of a program for an assignment in programming languages
 -- The students should rename the tasks of producers, consumers, and the buffer
 -- Then, they should change them so that they would fit their assignments
@@ -123,7 +125,15 @@ procedure Simulation is
    end Consumer;
 
    task body Buffer is
+     ---
+      --exception
+      ---
 
+      tooMuchProductsException: exception;
+
+      ---
+      ---
+      ---
       --ilosc miejsca na konkretne produkty
       Storage_Capacity: constant Integer := 30;
       type My_Int_Array is array (1 .. 5) of Integer;
@@ -166,8 +176,16 @@ procedure Simulation is
 	 MP: Boolean;			--  can accept
       begin
 
-     if Storage(Product) >= Storage_Capacity_Of_Product(Product) then
-            Put_Line("Nie mozemy przyjac produktu: " & Product_Name(Product) & " do magazynu, bo dla tego konkretnego produktu nie ma juz miejsca!");
+         if Storage(Product) >= Storage_Capacity_Of_Product(Product) then
+            ---
+            --exception
+            ---
+
+            raise tooMuchProductsException;
+
+            ---
+            ---
+            ---
             return False;
          end if;
 
@@ -235,7 +253,18 @@ procedure Simulation is
   	   else
 	      Put_Line("Rejected product " & Product_Name(Product) & " number " &
 		    Integer'Image(Number));
-	   end if;
+            end if;
+       ------------
+       --EXCEPTION
+       -----------
+       exception
+
+       when tooMuchProductsException =>
+               Put_Line("Nie mozemy przyjac produktu: " & Product_Name(Product) & " do magazynu, bo dla tego konkretnego produktu nie ma juz miejsca!");
+
+       ------
+       ------
+       ------
 	 end Take;
 	 Storage_Contents;
 	 accept Deliver(Assembly: in Assembly_Type; Number: out Integer) do
@@ -269,7 +298,7 @@ begin
    --P(5).Start(5,5);
    for I in 1 .. Number_Of_Products loop
       P(I).Start(I, 2);
-      delay Duration(0.35);
+      --delay Duration(0.35);
    end loop;
    for J in 1 .. Number_Of_Consumers loop
       K(J).Start(J, 23);
